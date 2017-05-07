@@ -5,6 +5,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Testing comments on delfi.lv
@@ -19,10 +20,12 @@ public class DelfiTest {
      * This test will test comment count on main page and article page
      */
     @Test
-    public void commentTesting() {
+    public void commentTesting() throws InterruptedException{
         LOGGER.info("We are starting our test");
 
         WebDriver driver = getDriver();
+
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
         LOGGER.info("We are opening rus.delfi.lv home page");
         driver.get("http://rus.delfi.lv");
@@ -40,15 +43,29 @@ public class DelfiTest {
         LOGGER.info("Comment count on article page is correct!");
 
         LOGGER.info("Moving to article comment page");
+        driver.findElement(By.className("comment-count")).click();
 
         LOGGER.info("Getting registered users comment count");
+        WebElement registeredCountParent = driver.findElement(By.cssSelector("a[class='comment-thread-switcher-list-a comment-thread-switcher-list-a-reg']"));
+        WebElement registeredCount = registeredCountParent.findElement(By.xpath("span"));
+        String counterRegisteredString = registeredCount.getText();
+        Integer countRegisteredUsers = Integer.parseInt(counterRegisteredString.substring(1, counterRegisteredString.length()-1));
+        LOGGER.info("Article comment count is " + countRegisteredUsers);
+        //return countRegisteredUsers;
 
         LOGGER.info("Getting unregistered users comment count");
+        WebElement unregisteredCountParent = driver.findElement(By.cssSelector("a[class='comment-thread-switcher-list-a comment-thread-switcher-list-a-anon']"));
+        WebElement unregisteredCount=unregisteredCountParent.findElement(By.xpath("span"));
+        String counterUnregisteredString = unregisteredCount.getText();
+        Integer countUnregisteredUsers = Integer.parseInt(counterUnregisteredString.substring(1, counterUnregisteredString.length()-1));
+        LOGGER.info("Article comment count is " + countUnregisteredUsers);
 
         LOGGER.info("Checking whole comment count");
+        Assert.assertEquals("Wrong comment count on article page", commentCount,
+                countRegisteredUsers+countUnregisteredUsers, 0);
 
         LOGGER.info("We are closing our browser");
-//        driver.quit();
+        driver.quit();
     }
 
     /**
